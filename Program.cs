@@ -27,9 +27,10 @@ if (app.Environment.IsDevelopment())
   });
 }
 
-app.MapGet("/policy", () => "hello there");
+app.MapGet("/policy", () => PolicyDB.GetStandardPolicy());
 
 app.MapGet("/policyItem", (int years) => PolicyDB.GetPolicy(years));
+
 
 app.MapGet("/todoitems", async (TodoDb db) =>
     await db.Todos.ToListAsync());

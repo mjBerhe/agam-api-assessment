@@ -16,8 +16,14 @@ public class PolicyDB
   {
     Policy myPolicy = new Policy(years);
     myPolicy.IncrementYears(20);
-    Console.WriteLine(myPolicy.age);
-    Console.WriteLine(myPolicy.fundFees);
+    return myPolicy;
+  }
+
+  public static Policy GetStandardPolicy()
+  {
+    Policy myPolicy = new Policy(60);
+    myPolicy.IncrementYears(40);
+    Console.WriteLine(myPolicy._policyRecords);
     return myPolicy;
   }
 }

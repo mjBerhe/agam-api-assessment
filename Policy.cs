@@ -1,3 +1,13 @@
+using Microsoft.AspNetCore.SignalR;
+using Microsoft.VisualBasic;
+
+public class PolicyRecord
+{
+  public int age { get; set; }
+  public int year { get; set; }
+  public double fundFees { get; set; }
+}
+
 public class Policy
 {
   public int age { get; set; }
@@ -31,7 +41,7 @@ public class Policy
 
 
   double contribution, withdrawalAmount, riderCharge, deathPayments;
-  public double fundFees { get; set; }
+  double fundFees;
 
   double ROPDeathBase, NARDeathClaims;
   double riderDeathBenefitBase, riderWithdrawalBase, riderWithdrawalAmount, riderCumulativeWithdrawal, riderMaxAnnualWithdrawal, riderMaxAnnualWithdrawalRate;
@@ -46,10 +56,22 @@ public class Policy
   double avPostDeathClaims, fund1PostDeathClaims, fund2PostDeathClaims;
   public double fund1PostRebalance, fund2PostRebalance;
 
+  public double cumulativeDeathClaims { get; set; }
+  public double cumulativeWithdrawalClaims { get; set; }
+  public double cumulativeRiderCharges { get; set; }
+  public List<PolicyRecord> _policyRecords = new List<PolicyRecord>();
+  public IList<PolicyRecord> PolicyRecords { get { return _policyRecords; } }
+
+
   public Policy(int initialAge)
   {
     this.age = initialAge;
     this.year = 0;
+
+    this.fund1Return = 0.03; // PARAM??
+    this.fund2Return = 0.035; // PARAM??
+    this.DF = Math.Pow(1 + RISK_FREE_RATE, year);
+    this.QX = 0.005; // PARAM??
 
     this.contribution = 0; // PARAM
     this.fundFees = 0;
@@ -97,12 +119,12 @@ public class Policy
     this.riderMaxAnnualWithdrawal = 0;
     this.riderMaxAnnualWithdrawalRate = 0;
 
-    this.fund1Return = 0.03; // PARAM??
-    this.fund2Return = 0.035; // PARAM??
-    this.DF = Math.Pow(1 + RISK_FREE_RATE, year);
-    this.QX = 0.005; // PARAM??
-
+    this.cumulativeDeathClaims = 0;
+    this.cumulativeWithdrawalClaims = 0;
+    this.cumulativeRiderCharges = 0;
   }
+
+  // policyRecords.Add(new PolicyRecord { age = age, year = year, fundFees = fundFees });
 
   public void IncrementYears(int years)
   {
@@ -173,10 +195,7 @@ public class Policy
         // #7
 
         riderDeathBenefitBase = Math.Max(0, riderDeathBenefitBase * (1 - QX) + contribution - fundFees - oldWithdrawalAmount - riderCharge);
-
-        // this guy is our problem
         riderWithdrawalBase = Math.Max(Math.Max(growthPhase == 1 ? avPostDeathClaims : 0, riderWithdrawalBase * (1 - QX) + contribution), eligibleStepUp == 1 ? riderWithdrawalBase * (1 - QX) * (1 + STEP_UP_RATE) + contribution - fundFees - riderCharge : 0);
-
         riderMaxAnnualWithdrawalRate = growthPhase == 1 ? 0 : age > AGE_4 ? MAX_ANNUAL_WITHDRAWAL_4 : age > AGE_3 ? MAX_ANNUAL_WITHDRAWAL_3 : age > AGE_2 ? MAX_ANNUAL_WITHDRAWAL_2 : age > AGE_1 ? MAX_ANNUAL_WITHDRAWAL_1 : 0;
         riderMaxAnnualWithdrawal = riderMaxAnnualWithdrawalRate * riderWithdrawalBase;
         riderWithdrawalAmount = withdrawalPhase == 1 ? WITHDRAWAL_RATE * riderWithdrawalBase : automaticPeriodicBenefitStatus == 1 ? riderMaxAnnualWithdrawal : 0;
@@ -223,6 +242,10 @@ public class Policy
       NARDeathClaims = Math.Max(0, deathPayments - avPostCharges);
       // Console.WriteLine($"{ROPDeathBase} {NARDeathClaims}");
 
+      cumulativeDeathClaims += NARDeathClaims * DF;
+      cumulativeWithdrawalClaims += Math.Max(0, withdrawalAmount - oldAvPostDeathClaims) * DF;
+      cumulativeRiderCharges += riderCharge * DF;
+
       double finalDeathClaims = NARDeathClaims;
       double finalWithdrawalClaims = Math.Max(riderWithdrawalAmount - oldAvPostDeathClaims, 0);
       double finalRiderCharges = riderCharge;
@@ -230,6 +253,9 @@ public class Policy
 
       // Console.WriteLine($"{riderCharge} {fundFees} {riderDeathBenefitBase} {riderWithdrawalBase} {withdrawalAmount} {riderMaxAnnualWithdrawal} {riderMaxAnnualWithdrawalRate}");
       Console.WriteLine($"{finalDeathClaims} {finalWithdrawalClaims} {finalRiderCharges}");
+
+      _policyRecords.Add(new PolicyRecord { age = age, year = year, fundFees = fundFees });
     }
   }
 }
+
