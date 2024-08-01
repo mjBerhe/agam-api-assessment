@@ -44,3 +44,4 @@ c:\Users\Matthew\Code\agam-api\bin\Debug\net8.0\YamlDotNet.dll
 c:\Users\Matthew\Code\agam-api\obj\Debug\net8.0\agam-api.csproj.AssemblyReference.cache
 c:\Users\Matthew\Code\agam-api\obj\Debug\net8.0\agam-api.MvcApplicationPartsAssemblyInfo.cs
 c:\Users\Matthew\Code\agam-api\obj\Debug\net8.0\agam-api.csproj.Up2Date
+C:\Users\Matthew\Code\agam-api\obj\Debug\net8.0\agam-api.sourcelink.json

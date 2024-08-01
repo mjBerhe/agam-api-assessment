@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("agam-api")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+284a6892b29d004a1ad9efe2fd98977170aa511f")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+9d912da84dc9bf026bab225b880c3c53b095586c")]
 [assembly: System.Reflection.AssemblyProductAttribute("agam-api")]
 [assembly: System.Reflection.AssemblyTitleAttribute("agam-api")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

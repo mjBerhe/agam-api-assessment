@@ -3,9 +3,51 @@ using Microsoft.VisualBasic;
 
 public class PolicyRecord
 {
-  public int age { get; set; }
   public int year { get; set; }
+  public int age { get; set; }
+  public double contribution { get; set; }
+  public double avPreFee { get; set; }
+  public double fund1PreFee { get; set; }
+  public double fund2PreFee { get; set; }
   public double fundFees { get; set; }
+  public double avPreWithdrawal { get; set; }
+  public double fund1PreWithdrawal { get; set; }
+  public double fund2PreWithdrawal { get; set; }
+  public double withdrawalAmount { get; set; }
+  public double avPostWithdrawal { get; set; }
+  public double fund1PostWithdrawal { get; set; }
+  public double fund2PostWithdrawal { get; set; }
+  public double riderCharge { get; set; }
+  public double avPostCharges { get; set; }
+  public double fund1PostCharges { get; set; }
+  public double fund2PostCharges { get; set; }
+  public double deathPayments { get; set; }
+  public double avPostDeathClaims { get; set; }
+  public double fund1PostDeathClaims { get; set; }
+  public double fund2PostDeathClaims { get; set; }
+  public double fund1PostRebalance { get; set; }
+  public double fund2PostRebalance { get; set; }
+  public double ROPDeathBase { get; set; }
+  public double NARDeathClaims { get; set; }
+  public double riderDeathBenefitBase { get; set; }
+  public double riderWithdrawalBase { get; set; }
+  public double riderWithdrawalAmount { get; set; }
+  public double riderCumulativeWithdrawal { get; set; }
+  public double riderMaxAnnualWithdrawal { get; set; }
+  public double riderMaxAnnualWithdrawalRate { get; set; }
+  public double eligibleStepUp { get; set; }
+  public double growthPhase { get; set; }
+  public double withdrawalPhase { get; set; }
+  public double automaticPeriodicBenefitStatus { get; set; }
+  public double lastDeath { get; set; }
+  public double fund1Return { get; set; }
+  public double fund2Return { get; set; }
+  public double rebalanceIndicator { get; set; }
+  public double DF { get; set; }
+  public double QX { get; set; }
+  public double finalDeathClaims { get; set; }
+  public double finalWithdrawalClaims { get; set; }
+  public double finalRiderCharges { get; set; }
 }
 
 public class Policy
@@ -56,6 +98,8 @@ public class Policy
   double avPostDeathClaims, fund1PostDeathClaims, fund2PostDeathClaims;
   public double fund1PostRebalance, fund2PostRebalance;
 
+  double finalDeathClaims, finalWithdrawalClaims, finalRiderCharges;
+
   public double cumulativeDeathClaims { get; set; }
   public double cumulativeWithdrawalClaims { get; set; }
   public double cumulativeRiderCharges { get; set; }
@@ -63,13 +107,13 @@ public class Policy
   public IList<PolicyRecord> PolicyRecords { get { return _policyRecords; } }
 
 
-  public Policy(int initialAge)
+  public Policy(int initialAge, double initialFund1Return, double initialFund2Return)
   {
     this.age = initialAge;
     this.year = 0;
 
-    this.fund1Return = 0.03; // PARAM??
-    this.fund2Return = 0.035; // PARAM??
+    this.fund1Return = initialFund1Return; // PARAM?? was 0.03
+    this.fund2Return = initialFund2Return; // PARAM?? was 0.035
     this.DF = Math.Pow(1 + RISK_FREE_RATE, year);
     this.QX = 0.005; // PARAM??
 
@@ -119,9 +163,62 @@ public class Policy
     this.riderMaxAnnualWithdrawal = 0;
     this.riderMaxAnnualWithdrawalRate = 0;
 
+    this.finalDeathClaims = 0;
+    this.finalWithdrawalClaims = 0;
+    this.finalRiderCharges = 0;
+
     this.cumulativeDeathClaims = 0;
     this.cumulativeWithdrawalClaims = 0;
     this.cumulativeRiderCharges = 0;
+
+    _policyRecords.Add(new PolicyRecord
+    {
+      age = age,
+      year = year,
+      contribution = contribution,
+      avPreFee = avPreFee,
+      fund1PreFee = fund1PreFee,
+      fund2PreFee = fund2PreFee,
+      fundFees = fundFees,
+      avPreWithdrawal = avPreWithdrawal,
+      fund1PreWithdrawal = fund1PreWithdrawal,
+      fund2PreWithdrawal = fund2PreWithdrawal,
+      withdrawalAmount = withdrawalAmount,
+      avPostWithdrawal = avPostWithdrawal,
+      fund1PostWithdrawal = fund1PostWithdrawal,
+      fund2PostWithdrawal = fund2PostWithdrawal,
+      riderCharge = riderCharge,
+      avPostCharges = avPostCharges,
+      fund1PostCharges = fund1PostCharges,
+      fund2PostCharges = fund2PostCharges,
+      deathPayments = deathPayments,
+      avPostDeathClaims = avPostDeathClaims,
+      fund1PostDeathClaims = fund1PostDeathClaims,
+      fund2PostDeathClaims = fund2PostDeathClaims,
+      fund1PostRebalance = fund1PostRebalance,
+      fund2PostRebalance = fund2PostRebalance,
+      ROPDeathBase = ROPDeathBase,
+      NARDeathClaims = NARDeathClaims,
+      riderDeathBenefitBase = riderDeathBenefitBase,
+      riderWithdrawalBase = riderWithdrawalBase,
+      riderWithdrawalAmount = riderWithdrawalAmount,
+      riderCumulativeWithdrawal = riderCumulativeWithdrawal,
+      riderMaxAnnualWithdrawal = riderMaxAnnualWithdrawal,
+      riderMaxAnnualWithdrawalRate = riderMaxAnnualWithdrawalRate,
+      eligibleStepUp = eligibleStepUp,
+      growthPhase = growthPhase,
+      withdrawalPhase = withdrawalPhase,
+      automaticPeriodicBenefitStatus = automaticPeriodicBenefitStatus,
+      lastDeath = lastDeath,
+      fund1Return = fund1Return,
+      fund2Return = fund2Return,
+      rebalanceIndicator = rebalanceIndicator,
+      DF = DF,
+      QX = QX,
+      finalDeathClaims = finalDeathClaims,
+      finalWithdrawalClaims = finalWithdrawalClaims,
+      finalRiderCharges = finalRiderCharges,
+    });
   }
 
   // policyRecords.Add(new PolicyRecord { age = age, year = year, fundFees = fundFees });
@@ -254,7 +351,54 @@ public class Policy
       // Console.WriteLine($"{riderCharge} {fundFees} {riderDeathBenefitBase} {riderWithdrawalBase} {withdrawalAmount} {riderMaxAnnualWithdrawal} {riderMaxAnnualWithdrawalRate}");
       Console.WriteLine($"{finalDeathClaims} {finalWithdrawalClaims} {finalRiderCharges}");
 
-      _policyRecords.Add(new PolicyRecord { age = age, year = year, fundFees = fundFees });
+      _policyRecords.Add(new PolicyRecord
+      {
+        age = age,
+        year = year,
+        contribution = contribution,
+        avPreFee = avPreFee,
+        fund1PreFee = fund1PreFee,
+        fund2PreFee = fund2PreFee,
+        fundFees = fundFees,
+        avPreWithdrawal = avPreWithdrawal,
+        fund1PreWithdrawal = fund1PreWithdrawal,
+        fund2PreWithdrawal = fund2PreWithdrawal,
+        withdrawalAmount = withdrawalAmount,
+        avPostWithdrawal = avPostWithdrawal,
+        fund1PostWithdrawal = fund1PostWithdrawal,
+        fund2PostWithdrawal = fund2PostWithdrawal,
+        riderCharge = riderCharge,
+        avPostCharges = avPostCharges,
+        fund1PostCharges = fund1PostCharges,
+        fund2PostCharges = fund2PostCharges,
+        deathPayments = deathPayments,
+        avPostDeathClaims = avPostDeathClaims,
+        fund1PostDeathClaims = fund1PostDeathClaims,
+        fund2PostDeathClaims = fund2PostDeathClaims,
+        fund1PostRebalance = fund1PostRebalance,
+        fund2PostRebalance = fund2PostRebalance,
+        ROPDeathBase = ROPDeathBase,
+        NARDeathClaims = NARDeathClaims,
+        riderDeathBenefitBase = riderDeathBenefitBase,
+        riderWithdrawalBase = riderWithdrawalBase,
+        riderWithdrawalAmount = riderWithdrawalAmount,
+        riderCumulativeWithdrawal = riderCumulativeWithdrawal,
+        riderMaxAnnualWithdrawal = riderMaxAnnualWithdrawal,
+        riderMaxAnnualWithdrawalRate = riderMaxAnnualWithdrawalRate,
+        eligibleStepUp = eligibleStepUp,
+        growthPhase = growthPhase,
+        withdrawalPhase = withdrawalPhase,
+        automaticPeriodicBenefitStatus = automaticPeriodicBenefitStatus,
+        lastDeath = lastDeath,
+        fund1Return = fund1Return,
+        fund2Return = fund2Return,
+        rebalanceIndicator = rebalanceIndicator,
+        DF = DF,
+        QX = QX,
+        finalDeathClaims = finalDeathClaims,
+        finalWithdrawalClaims = finalWithdrawalClaims,
+        finalRiderCharges = finalRiderCharges,
+      });
     }
   }
 }

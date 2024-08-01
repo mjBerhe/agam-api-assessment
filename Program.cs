@@ -27,7 +27,11 @@ if (app.Environment.IsDevelopment())
   });
 }
 
-app.MapGet("/policy", () => PolicyDB.GetStandardPolicy());
+app.MapGet("/policy", (int incYears, double fund1Return, double fund2Return) =>
+{
+  return PolicyDB.GetStandardPolicy(incYears, fund1Return, fund2Return);
+});
+
 
 app.MapGet("/policyItem", (int years) => PolicyDB.GetPolicy(years));
 
