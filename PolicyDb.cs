@@ -14,13 +14,14 @@ public class PolicyDB
 {
   public static Policy GetPolicy(int years)
   {
-    Policy myPolicy = new Policy(years, 0.03, 0.16, 0.03, 0.0015, 0.2);
+    Policy myPolicy = new Policy(years, 1, 0.03, 0.16, 0.03, 0.0015, 0.2);
     myPolicy.IncrementYears(20);
     return myPolicy;
   }
 
   public static Policy GetStandardPolicy(
-    int incYears,
+    int initialAge,
+    double qxMultiplier,
     double fund1Return,
     double volatilityRate,
     double riskFreeRate,
@@ -28,8 +29,8 @@ public class PolicyDB
     double fund1Size
   )
   {
-    Policy myPolicy = new Policy(60, fund1Return, volatilityRate, riskFreeRate, fundFeeRate, fund1Size);
-    myPolicy.IncrementYears(incYears);
+    Policy myPolicy = new Policy(initialAge, qxMultiplier, fund1Return, volatilityRate, riskFreeRate, fundFeeRate, fund1Size);
+    myPolicy.IncrementYears(100 - initialAge);
     // Console.WriteLine(myPolicy._policyRecords);
     return myPolicy;
   }

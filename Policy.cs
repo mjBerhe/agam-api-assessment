@@ -129,6 +129,7 @@ public class Policy
 
   public Policy(
     int initialAge,
+    double qxMultiplier,
     double initialFund1Return,
     double volatilityRate,
     double riskFreeRate,
@@ -143,9 +144,10 @@ public class Policy
     this.fundFeeRate = fundFeeRate;
     this.volatilityRate = volatilityRate;
     this.fund1Return = initialFund1Return;
-    this.fund2Return = Math.Exp(Math.Log(1 + riskFreeRate) - 0.5 * Math.Pow(volatilityRate, 2) + volatilityRate * GenerateStandardNormal()) - 1;
+    this.fund2Return = 0;
+    // this.fund2Return = Math.Exp(Math.Log(1 + riskFreeRate) - 0.5 * Math.Pow(volatilityRate, 2) + volatilityRate * GenerateStandardNormal()) - 1;
     this.DF = Math.Pow(1 + riskFreeRate, year);
-    this.QX = 0.005; // PARAM??
+    this.QX = 0.005 * qxMultiplier; // PARAM??
 
 
     this.contribution = 0; // PARAM

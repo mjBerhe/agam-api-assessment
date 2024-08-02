@@ -28,7 +28,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.MapGet("/policy", (
-  int incYears,
+  int initialAge,
+  double qxMultiplier,
   double fund1Return,
   double volatilityRate,
   double riskFreeRate,
@@ -36,7 +37,7 @@ app.MapGet("/policy", (
   double fund1Size
 ) =>
 {
-  return PolicyDB.GetStandardPolicy(incYears, fund1Return, volatilityRate, riskFreeRate, fundFeeRate, fund1Size);
+  return PolicyDB.GetStandardPolicy(initialAge, qxMultiplier, fund1Return, volatilityRate, riskFreeRate, fundFeeRate, fund1Size);
 });
 
 
