@@ -27,9 +27,16 @@ if (app.Environment.IsDevelopment())
   });
 }
 
-app.MapGet("/policy", (int incYears, double fund1Return, double fund2Return) =>
+app.MapGet("/policy", (
+  int incYears,
+  double fund1Return,
+  double volatilityRate,
+  double riskFreeRate,
+  double fundFeeRate,
+  double fund1Size
+) =>
 {
-  return PolicyDB.GetStandardPolicy(incYears, fund1Return, fund2Return);
+  return PolicyDB.GetStandardPolicy(incYears, fund1Return, volatilityRate, riskFreeRate, fundFeeRate, fund1Size);
 });
 
 

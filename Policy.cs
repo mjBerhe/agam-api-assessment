@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.VisualBasic;
 
+
 public class PolicyRecord
 {
   public int year { get; set; }
@@ -10,6 +11,7 @@ public class PolicyRecord
   public double fund1PreFee { get; set; }
   public double fund2PreFee { get; set; }
   public double fundFees { get; set; }
+  public double onlyFundFees { get; set; }
   public double avPreWithdrawal { get; set; }
   public double fund1PreWithdrawal { get; set; }
   public double fund2PreWithdrawal { get; set; }
@@ -48,12 +50,17 @@ public class PolicyRecord
   public double finalDeathClaims { get; set; }
   public double finalWithdrawalClaims { get; set; }
   public double finalRiderCharges { get; set; }
+  public double finalFundFees { get; set; }
+  public double fund1InterestCredited { get; set; }
+  public double fund2InterestCredited { get; set; }
+  public double totalInterestCredited { get; set; }
 }
 
 public class Policy
 {
   public int age { get; set; }
   public int year;
+  double fund1Size;
   const int INITIAL_PREMIUM = 100000;
   const double STEP_UP_RATE = 0.06;
   const int STEP_UP_PERIOD = 10;
@@ -66,10 +73,10 @@ public class Policy
   const double WITHDRAWAL_RATE = 0.03;
   const double FUNDS_AUTOMATIC_REBALANCING_TARGET = 0.2;
 
+  // const double RISK_FREE_RATE = 0.03; // input
+  // const double FUND_FEE_RATE = 0.0015; // input
+  double riskFreeRate, fundFeeRate, volatilityRate;
   const double M_AND_E_RATE = 0.014;
-  const double FUND_FEE_RATE = 0.0015;
-  const double RISK_FREE_RATE = 0.03;
-  const double VOLATILITY_RATE = 0.16;
 
   const double AGE_1 = 59.5;
   const double AGE_2 = 65;
@@ -83,7 +90,7 @@ public class Policy
 
 
   double contribution, withdrawalAmount, riderCharge, deathPayments;
-  double fundFees;
+  double fundFees, onlyFundFees;
 
   double ROPDeathBase, NARDeathClaims;
   double riderDeathBenefitBase, riderWithdrawalBase, riderWithdrawalAmount, riderCumulativeWithdrawal, riderMaxAnnualWithdrawal, riderMaxAnnualWithdrawalRate;
@@ -98,27 +105,52 @@ public class Policy
   double avPostDeathClaims, fund1PostDeathClaims, fund2PostDeathClaims;
   public double fund1PostRebalance, fund2PostRebalance;
 
-  double finalDeathClaims, finalWithdrawalClaims, finalRiderCharges;
+  double finalDeathClaims, finalWithdrawalClaims, finalRiderCharges, finalFundFees;
+  double fund1InterestCredited, fund2InterestCredited, totalInterestCredited;
 
   public double cumulativeDeathClaims { get; set; }
   public double cumulativeWithdrawalClaims { get; set; }
   public double cumulativeRiderCharges { get; set; }
+  public double cumulativeFundFees { get; set; }
   public List<PolicyRecord> _policyRecords = new List<PolicyRecord>();
   public IList<PolicyRecord> PolicyRecords { get { return _policyRecords; } }
 
+  static double GenerateStandardNormal()
+  {
+    Random random = new Random();
+    double u1 = random.NextDouble();
+    double u2 = random.NextDouble();
+    double randStdNormal = Math.Sqrt(-2.0 * Math.Log(u1)) * Math.Sin(2.0 * Math.PI * u2);
 
-  public Policy(int initialAge, double initialFund1Return, double initialFund2Return)
+    return randStdNormal;
+
+  }
+
+
+  public Policy(
+    int initialAge,
+    double initialFund1Return,
+    double volatilityRate,
+    double riskFreeRate,
+    double fundFeeRate,
+    double fund1Size
+  )
   {
     this.age = initialAge;
     this.year = 0;
 
-    this.fund1Return = initialFund1Return; // PARAM?? was 0.03
-    this.fund2Return = initialFund2Return; // PARAM?? was 0.035
-    this.DF = Math.Pow(1 + RISK_FREE_RATE, year);
+    this.riskFreeRate = riskFreeRate;
+    this.fundFeeRate = fundFeeRate;
+    this.volatilityRate = volatilityRate;
+    this.fund1Return = initialFund1Return;
+    this.fund2Return = Math.Exp(Math.Log(1 + riskFreeRate) - 0.5 * Math.Pow(volatilityRate, 2) + volatilityRate * GenerateStandardNormal()) - 1;
+    this.DF = Math.Pow(1 + riskFreeRate, year);
     this.QX = 0.005; // PARAM??
+
 
     this.contribution = 0; // PARAM
     this.fundFees = 0;
+    this.onlyFundFees = 0;
     this.withdrawalAmount = 0; // PARAM??
     this.riderCharge = 0;
     this.deathPayments = 0;
@@ -130,8 +162,8 @@ public class Policy
     this.lastDeath = 0;
     this.rebalanceIndicator = 0;
 
-    this.fund1PreFee = INITIAL_PREMIUM * 0.16;
-    this.fund2PreFee = INITIAL_PREMIUM * 0.64;
+    this.fund1PreFee = INITIAL_PREMIUM * fund1Size * 0.8;
+    this.fund2PreFee = INITIAL_PREMIUM * (1 - fund1Size) * 0.8;
     this.avPreFee = fund1PreFee + fund2PreFee;
 
     this.avPreWithdrawal = avPreFee + contribution - fundFees;
@@ -166,10 +198,16 @@ public class Policy
     this.finalDeathClaims = 0;
     this.finalWithdrawalClaims = 0;
     this.finalRiderCharges = 0;
+    this.finalFundFees = 0;
+
+    this.fund1InterestCredited = 0;
+    this.fund2InterestCredited = 0;
+    this.totalInterestCredited = 0;
 
     this.cumulativeDeathClaims = 0;
     this.cumulativeWithdrawalClaims = 0;
     this.cumulativeRiderCharges = 0;
+    this.cumulativeFundFees = 0;
 
     _policyRecords.Add(new PolicyRecord
     {
@@ -180,6 +218,7 @@ public class Policy
       fund1PreFee = fund1PreFee,
       fund2PreFee = fund2PreFee,
       fundFees = fundFees,
+      onlyFundFees = onlyFundFees,
       avPreWithdrawal = avPreWithdrawal,
       fund1PreWithdrawal = fund1PreWithdrawal,
       fund2PreWithdrawal = fund2PreWithdrawal,
@@ -218,10 +257,12 @@ public class Policy
       finalDeathClaims = finalDeathClaims,
       finalWithdrawalClaims = finalWithdrawalClaims,
       finalRiderCharges = finalRiderCharges,
+      finalFundFees = finalFundFees,
+      fund1InterestCredited = fund1InterestCredited,
+      fund2InterestCredited = fund2InterestCredited,
+      totalInterestCredited = totalInterestCredited
     });
   }
-
-  // policyRecords.Add(new PolicyRecord { age = age, year = year, fundFees = fundFees });
 
   public void IncrementYears(int years)
   {
@@ -238,12 +279,18 @@ public class Policy
 
       // PRIORITY UPDATES
       // #1
-      DF = Math.Round(Math.Pow(1 + RISK_FREE_RATE, year * -1), 4);
-      fundFees = oldAvPostDeathClaims * (M_AND_E_RATE + FUND_FEE_RATE);
+      DF = Math.Round(Math.Pow(1 + riskFreeRate, year * -1), 4);
+      fund2Return = Math.Exp(Math.Log(1 + riskFreeRate) - 0.5 * Math.Pow(volatilityRate, 2) + volatilityRate * GenerateStandardNormal()) - 1;
+      fundFees = oldAvPostDeathClaims * (M_AND_E_RATE + fundFeeRate);
+      onlyFundFees = oldAvPostDeathClaims * fundFeeRate;
 
       fund1PreFee = fund1PostRebalance * (1 + fund1Return);
       fund2PreFee = fund2PostRebalance * (1 + fund2Return);
       avPreFee = fund1PreFee + fund2PreFee;
+
+      fund1InterestCredited = fund1PreFee - fund1PostRebalance;
+      fund2InterestCredited = fund2PreFee - fund2PostRebalance;
+      totalInterestCredited = fund1InterestCredited + fund2InterestCredited;
       // Console.WriteLine($"{fund1PreFee} {fund2PreFee} {avPreFee}");
 
       // #2
@@ -342,14 +389,19 @@ public class Policy
       cumulativeDeathClaims += NARDeathClaims * DF;
       cumulativeWithdrawalClaims += Math.Max(0, withdrawalAmount - oldAvPostDeathClaims) * DF;
       cumulativeRiderCharges += riderCharge * DF;
+      cumulativeFundFees += onlyFundFees * DF;
+
 
       double finalDeathClaims = NARDeathClaims;
       double finalWithdrawalClaims = Math.Max(riderWithdrawalAmount - oldAvPostDeathClaims, 0);
       double finalRiderCharges = riderCharge;
+      double finalFundFees = onlyFundFees;
 
 
       // Console.WriteLine($"{riderCharge} {fundFees} {riderDeathBenefitBase} {riderWithdrawalBase} {withdrawalAmount} {riderMaxAnnualWithdrawal} {riderMaxAnnualWithdrawalRate}");
-      Console.WriteLine($"{finalDeathClaims} {finalWithdrawalClaims} {finalRiderCharges}");
+      // Console.WriteLine($"{finalDeathClaims} {finalWithdrawalClaims} {finalRiderCharges}");
+      // Console.WriteLine($"{fund1InterestCredited} {fund2InterestCredited} {totalInterestCredited}");
+      Console.WriteLine($"{fund2Return}");
 
       _policyRecords.Add(new PolicyRecord
       {
@@ -360,6 +412,7 @@ public class Policy
         fund1PreFee = fund1PreFee,
         fund2PreFee = fund2PreFee,
         fundFees = fundFees,
+        onlyFundFees = onlyFundFees,
         avPreWithdrawal = avPreWithdrawal,
         fund1PreWithdrawal = fund1PreWithdrawal,
         fund2PreWithdrawal = fund2PreWithdrawal,
@@ -398,8 +451,14 @@ public class Policy
         finalDeathClaims = finalDeathClaims,
         finalWithdrawalClaims = finalWithdrawalClaims,
         finalRiderCharges = finalRiderCharges,
+        finalFundFees = finalFundFees,
+        fund1InterestCredited = fund1InterestCredited,
+        fund2InterestCredited = fund2InterestCredited,
+        totalInterestCredited = totalInterestCredited,
       });
     }
   }
 }
+
+
 
